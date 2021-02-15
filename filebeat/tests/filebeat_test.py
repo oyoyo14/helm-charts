@@ -1370,3 +1370,47 @@ deployment:
     assert "hostAliases" not in r["daemonset"][name]["spec"]["template"]["spec"]
     hostAliases = r["deployment"][name]["spec"]["template"]["spec"]["hostAliases"]
     assert {"ip": "127.0.0.1", "hostnames": ["foo.local", "bar.local"]} in hostAliases
+
+def test_args():
+    config = """
+deployment:
+  enabled: true
+daemonset:
+    enabled: true
+"""
+    r = helm_template(config)
+    cfg = r["configmap"]
+
+    assert "args" in r["daemonset"][name]["spec"]["template"]["spec"]["containers"][0]
+    assert len(r["daemonset"][name]["spec"]["template"]["spec"]["containers"][0]["args"]) == 3
+    assert "-e" in r["daemonset"][name]["spec"]["template"]["spec"]["containers"][0]["args"]
+    assert "-E" in r["daemonset"][name]["spec"]["template"]["spec"]["containers"][0]["args"]
+    assert "http.enabled=true" in r["daemonset"][name]["spec"]["template"]["spec"]["containers"][0]["args"]
+
+    assert "args" in r["deployment"][name]["spec"]["template"]["spec"]["containers"][0]
+    assert len(r["deployment"][name]["spec"]["template"]["spec"]["containers"][0]["args"]) == 3
+    assert "-e" in r["deployment"][name]["spec"]["template"]["spec"]["containers"][0]["args"]
+    assert "-E" in r["deployment"][name]["spec"]["template"]["spec"]["containers"][0]["args"]
+    assert "http.enabled=true" in r["deployment"][name]["spec"]["template"]["spec"]["containers"][0]["args"]
+
+    config = """
+deployment:
+  enabled: true
+    args:
+    - "test"
+daemonset:
+    enabled: true
+    args:
+    - "test"
+"""
+
+    r = helm_template(config)
+    cfg = r["configmap"]
+
+    assert "args" in r["daemonset"][name]["spec"]["template"]["spec"]["containers"][0]
+    assert len(r["daemonset"][name]["spec"]["template"]["spec"]["containers"][0]["args"]) == 1
+    assert "test" in r["daemonset"][name]["spec"]["template"]["spec"]["containers"][0]["args"]
+
+    assert "args" in r["deployment"][name]["spec"]["template"]["spec"]["containers"][0]
+    assert len(r["deployment"][name]["spec"]["template"]["spec"]["containers"][0]["args"]) == 1
+    assert "test" in r["deployment"][name]["spec"]["template"]["spec"]["containers"][0]["args"]
