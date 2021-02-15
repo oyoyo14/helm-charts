@@ -135,9 +135,7 @@ spec:
         image: "{{ .Values.image }}:{{ .Values.imageTag }}"
         imagePullPolicy: "{{ .Values.imagePullPolicy }}"
         args:
-        - "-e"
-        - "-E"
-        - "http.enabled=true"
+{{ toYaml ( .Values.args | default .Values.daemonset.args )  | indent 8 }}
         livenessProbe:
 {{ toYaml .Values.livenessProbe | indent 10 }}
         readinessProbe:
